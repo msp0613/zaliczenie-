@@ -1,0 +1,179 @@
+import csv
+
+with open('Zeszyt1.csv', 'r') as f:
+    odczyt = csv.reader(f, delimiter=';')
+    lista = list(odczyt)
+
+
+def wyswietlWszystkiePowiiaty():
+    for kolimna in lista:
+        print(kolimna)
+
+
+def obliczŚredniąWPolsce():
+    sumaProcenty = 0
+    sumaIloscWTys = 0
+    iloscPowiatow = 0
+    for kolumna in lista:
+        sumaProcenty += float(kolumna[2])
+        sumaIloscWTys += float(kolumna[1])
+        iloscPowiatow = iloscPowiatow + 1
+    sredniaProcent = sumaProcenty / iloscPowiatow
+    sredniaWTys = sumaIloscWTys / iloscPowiatow
+
+    return (sredniaProcent, sredniaWTys)
+
+
+def ileBezrobotnychWPolsce():
+    ileBezrobotnychWTys = 0
+    for kolumna in lista:
+        ileBezrobotnychWTys += float(kolumna[1])
+
+    return ileBezrobotnychWTys
+
+
+def ilemieszkańcówWPolsce():
+    ileMieszkańcówWTys = 0
+    for kolumna in lista:
+        ileBezrobotnychWPowiecie = float(kolumna[1])
+        procentBezrobotnych = float(kolumna[2])
+        liczbaMieszkanowPowiatu = ileBezrobotnychWPowiecie * 100.0 / procentBezrobotnych
+
+        ileMieszkańcówWTys += liczbaMieszkanowPowiatu
+    return ileMieszkańcówWTys
+
+
+def bezrobocieWPolsce():
+    return ileBezrobotnychWPolsce() / ilemieszkańcówWPolsce()
+
+
+def daneOWojewodztwie(wojewodztwo):
+    sumaProcent = 0
+    sumaIlosc = 0
+    iloscPowiatowWWojewodztwie = 0
+    for kolumna in lista:
+        if wojewodztwo.upper() == kolumna[3].upper():
+            print(kolumna)
+            sumaIlosc += float(kolumna[1])
+            sumaProcent += float(kolumna[2])
+            iloscPowiatowWWojewodztwie = iloscPowiatowWWojewodztwie + 1
+            print(kolumna)
+
+    sredniaProcent = sumaProcent / iloscPowiatowWWojewodztwie
+    sredniaWTys = sumaIlosc / iloscPowiatowWWojewodztwie
+
+    return sredniaProcent, sredniaWTys
+
+
+def sortujPoIlosc():
+    lista.sort(key=lambda lista: lista[1])
+
+
+def sortujPoProcencie():
+    lista.sort(key=lambda lista: lista[2])
+
+
+def RankingPoiatowPoIlosci():
+    sortujPoIlosc()
+    for kolumna in lista:
+        print(kolumna[0])
+
+
+def RankingPowiatowPoProcencie():
+    sortujPoProcencie()
+    for kolumna in lista:
+        print(kolumna[0])
+
+
+def dzialanieProgramu():
+    wybor = 0
+    while wybor != 6:
+        print('1.Informacje o Polsce')
+        print('2.Dane o Województwie')
+        print('3.Dane o Powiecie')
+        print('4.Ranking Województw')
+        print('5.Ranking powiatow')
+        print('6.Wyjscie')
+        wybor = int(input('Wybierz dzialanie '))
+        if (wybor == 1):
+            srednieBezrobocieNaPowiatWProcentach, srednieBezrobocieNaPowiatWTys = obliczŚredniąWPolsce()
+            print("Srednia ilosc bezrobotnych na 1 powiat: ",
+                  "{:.3f}".format(srednieBezrobocieNaPowiatWProcentach) + " tys.")
+            print("Sredni procent bezrobocia na 1 powiat: ", "{:.2f}".format(srednieBezrobocieNaPowiatWTys) + "%. ")
+            print("Ile badanych w Polsce : ", "{:.3f}".format(ilemieszkańcówWPolsce()) + " tys.")
+            print("Ile bezrobotnych w Polsce: ", "{:.3f}".format(ileBezrobotnychWPolsce()) + " tys.")
+            print("Procent bezrobotnych w Polsce", "{:.2f}".format(bezrobocieWPolsce() * 100) + "%.")
+        if (wybor == 2):
+            wojewodztwo=input("Podaj nazwę województwa")
+            daneOWojewodztwie(wojewodztwo)
+
+        if(wybor ==4):
+            wojewodztwaRanking()
+        if(wybor ==5):
+            RankingPowiatowPoProcencie()
+            RankingPoiatowPoIlosci()
+        if(wybor ==6):
+            print("KOniec")
+def ileBezrobotnychWWojewodztwach():
+    ileBezrobotnych = {}
+    for kolumna in lista:
+        nazwaWojewodztwa = kolumna[3]
+        ileBezrobotnychWPowiecie = float(kolumna[1])
+
+        if nazwaWojewodztwa in ileBezrobotnych:
+            ileBezrobotnych[nazwaWojewodztwa] += ileBezrobotnychWPowiecie
+        else:
+            ileBezrobotnych[nazwaWojewodztwa] = ileBezrobotnychWPowiecie
+
+    return ileBezrobotnych
+
+
+def wojewodztwaRanking():
+    ileBezrobotnych = ileBezrobotnychWWojewodztwach()
+    print("Ilosc bezrobotnych w tys. w kazdym z wojewodztw:")
+    print(ileBezrobotnych)
+
+    ileMieszkancow = ileMieszkancowWWojewodztwach()
+    print("Ilosc mieszkancow w tys. w kazdym z wojewodztw:")
+    print(ileMieszkancow)
+    srednieBezrobocie = srednieBezrobocieWWojewodztwach(ileBezrobotnych, ileMieszkancow)
+    srednieBezrobocieLista = []
+    for wojewodztwo in srednieBezrobocie:
+        srednieBezrobocieLista.append((wojewodztwo, srednieBezrobocie[wojewodztwo]))
+    srednieBezrobocieLista.sort(key=lambda para: float(para[1][:-1]))
+    print("Bezrobocie wg wojewodztw od najmniejszego: ", srednieBezrobocieLista)
+    print("Najwieksze bezrobocie:", srednieBezrobocieLista[-1])
+    print("Najmniejsze bezrobocie:", srednieBezrobocieLista[0])
+
+def ileMieszkancowWWojewodztwach():
+    ileLudzi = {}
+    for kolumna in lista:
+        nazwaWojewodztwa = kolumna[3]
+        ileBezrobotnychWPowiecie = float(kolumna[1])
+        procentBezrobotnych = float(kolumna[2])
+
+        liczbaMieszkanowPowiatu = ileBezrobotnychWPowiecie * 100.0 / procentBezrobotnych
+
+        if nazwaWojewodztwa in ileLudzi:
+            ileLudzi[nazwaWojewodztwa] += liczbaMieszkanowPowiatu
+        else:
+            ileLudzi[nazwaWojewodztwa] = liczbaMieszkanowPowiatu
+
+    return ileLudzi
+
+
+def srednieBezrobocieWWojewodztwach(ileBezrobotnych, ileMieszkancow):
+    bezrobocieWWojewodztwie = {}
+
+    for wojewodztwo in ileBezrobotnych:
+        procent = ileBezrobotnych[wojewodztwo] / ileMieszkancow[wojewodztwo] * 100
+
+        bezrobocieWWojewodztwie[wojewodztwo.lower()] = "{:.2f}".format(procent) + "%"
+
+    return bezrobocieWWojewodztwie
+
+
+dzialanieProgramu()
+
+
+
